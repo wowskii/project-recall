@@ -1,0 +1,129 @@
+:root {
+  --bg: #e5f6ff;
+  --panel: #ffffff;
+  --text: #251b36;
+  --muted: #5f6f91;
+  --primary: #0195ff;
+  --primary-hover: #1b9dff;
+  --button-text: #ffffff;
+  --border: #bcd8ee;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+.pomodoro-page {
+  max-width: 920px;
+  margin: 24px auto;
+  padding: 18px;
+}
+
+header h1 {
+  margin: 0 0 4px;
+  font-size: 2rem;
+}
+
+header p,
+header .error {
+  margin: 4px 0 16px;
+  color: var(--muted);
+}
+
+.error {
+  color: #c13f5d;
+}
+
+.timer-card,
+.tasks-card,
+.placeholder-help {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 24px rgba(28, 51, 91, 0.08);
+}
+
+.time-display {
+  margin: 10px auto;
+  font-size: 4rem;
+  width: fit-content;
+  color: #021f3c;
+  font-weight: 700;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.btn {
+  border: none;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--button-text);
+  padding: 9px 18px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--primary-hover);
+}
+
+.tasks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tasks-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px;
+  border-bottom: 1px solid #ebf2f8;
+}
+
+.tasks-list li:last-child {
+  border-bottom: none;
+}
+
+.tasks-list li.done label {
+  text-decoration: line-through;
+  color: #718199;
+}
+
+.tasks-list input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+}
+
+.placeholder-help small {
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .time-display {
+    font-size: 3rem;
+  }
+
+  .pomodoro-page {
+    margin: 12px;
+    padding: 12px;
+  }
+}
+
