@@ -84,12 +84,6 @@ header .error {
   background: var(--primary-hover);
 }
 
-.tasks-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
 .tasks-list li {
   display: flex;
   align-items: center;
@@ -110,6 +104,48 @@ header .error {
 .tasks-list input[type='checkbox'] {
   width: 17px;
   height: 17px;
+}
+
+.delete-btn {
+  background: #c13f5d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.delete-btn:hover {
+  background: #a0324a;
+}
+
+.create-task {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.create-task h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.create-task input {
+  margin-right: 8px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.create-task input[type='number'] {
+  width: 80px;
+}
+
+.create-task button {
+  margin-top: 8px;
 }
 
 .placeholder-help small {

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, create_engine, SQLModel, select
 from models import User, Role, Project, Task, WorkSession
@@ -75,7 +75,7 @@ def get_all_tasks():
 
 
 @app.post("/tasks")
-def create_task(title: str, project_id: int, xp_value: int = 100):
+def create_task(title: str = Form(...), project_id: int = Form(...), xp_value: int = Form(100)):
     """Create a new task"""
     with Session(engine) as session:
         task = Task(title=title, project_id=project_id, xp_value=xp_value)
@@ -93,3 +93,28 @@ def get_task(task_id: int):
         if not task:
             return {"error": "Task not found"}
         return {"task": task}
+
+
+@app.patch("/tasks/{task_id}")
+def update_task_status(task_id: int, status: str):
+    """Update task status (todo, in_progress, done)"""
+    with Session(engine) as session:
+        task = session.get(Task, task_id)
+        if not task:
+            return {"error": "Task not found"}
+        task.status = status
+        session.commit()
+        session.refresh(task)
+        return {"task": task}
+
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: int):
+    """Delete a task by ID"""
+    with Session(engine) as session:
+        task = session.get(Task, task_id)
+        if not task:
+            return {"error": "Task not found"}
+        session.delete(task)
+        session.commit()
+        return {"message": "Task deleted"}
