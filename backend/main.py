@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form
+from fastapi import Body, FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, create_engine, SQLModel, select
 from models import User, Role, Project, Task, WorkSession
@@ -96,7 +96,7 @@ def get_task(task_id: int):
 
 
 @app.patch("/tasks/{task_id}")
-def update_task_status(task_id: int, status: str):
+def update_task_status(task_id: int, status: str = Body(...)):
     """Update task status (todo, in_progress, done)"""
     with Session(engine) as session:
         task = session.get(Task, task_id)

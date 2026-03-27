@@ -85,14 +85,14 @@ function App() {
       const resp = await fetch(`http://localhost:8000/tasks/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(newStatus),
       })
       if (!resp.ok) throw new Error('Failed to update task')
 
       await loadTasks() // Reload tasks
     } catch (err) {
       console.error(err)
-      setError('Failed to update task status.')
+      setError('Failed to update task status to ' + newStatus)
     }
   }
 
