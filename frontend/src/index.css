@@ -106,3 +106,11 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+@font-face {
+  font-family: 'Probert';
+  src: url('/public/fonts/probert/Probert Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+
+}

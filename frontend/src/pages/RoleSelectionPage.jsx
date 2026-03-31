@@ -28,7 +28,7 @@ function RoleSelectionPage() {
         {roles.map((role) => (
           <div key={role.id} className="role-card" onClick={selectRole}>
             <div className="role-icon">{role.icon}</div>
-            <button className="role-button">{role.name}</button>
+            <div className="role-name">{role.name.toLocaleUpperCase()}</div>
           </div>
         ))}
       </section>
