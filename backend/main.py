@@ -13,6 +13,19 @@ SQLModel.metadata.create_all(engine)
 # Initialize FastAPI app
 app = FastAPI(title="Project Recall API")
 
+# ============================================
+# STARTUP: Create default user if needed
+# ============================================
+@app.on_event("startup")
+def startup_event():
+    """Create a default user on startup if none exists"""
+    with Session(engine) as session:
+        existing_users = session.exec(select(User)).all()
+        if not existing_users:
+            default_user = User(username="default_user")
+            session.add(default_user)
+            session.commit()
+
 # Enable CORS (so your frontend can communicate with this backend)
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +34,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Helper function to get the default user
+def get_default_user():
+    """Get the default user (assumes one exists from startup)"""
+    with Session(engine) as session:
+        user = session.exec(select(User)).first()
+        return user.id if user else None
 
 # ============================================
 # HEALTH CHECK - Test if the API is running
@@ -64,8 +84,55 @@ def get_user(user_id: int):
 
 
 # ============================================
-# TASK ENDPOINTS
+# ROLE ENDPOINTS
 # ============================================
+@app.get("/roles")
+def get_all_roles():
+    """Retrieve all roles (active and inactive) for the default user"""
+    with Session(engine) as session:
+        user_id = get_default_user()
+        roles = session.exec(select(Role).where(Role.user_id == user_id)).all()
+        return {"roles": roles}
+
+
+@app.post("/roles")
+def create_role(name: str = Form(...), color_hex: str = Form("#f99e1a"), icon_name: str = Form("shield")):
+    """Create a new role"""
+    with Session(engine) as session:
+        user_id = get_default_user()
+        if not user_id:
+            return {"error": "No user found"}
+        
+        role = Role(name=name, color_hex=color_hex, icon_name=icon_name, user_id=user_id, role_status="active")
+        session.add(role)
+        session.commit()
+        session.refresh(role)
+        return {"role": role}
+
+
+@app.patch("/roles/{role_id}")
+def update_role(role_id: int, role_status: str = Body(...)):
+    """Update role status (active or inactive)"""
+    with Session(engine) as session:
+        role = session.get(Role, role_id)
+        if not role:
+            return {"error": "Role not found"}
+        role.role_status = role_status
+        session.commit()
+        session.refresh(role)
+        return {"role": role}
+
+
+@app.delete("/roles/{role_id}")
+def delete_role(role_id: int):
+    """Delete a role by ID"""
+    with Session(engine) as session:
+        role = session.get(Role, role_id)
+        if not role:
+            return {"error": "Role not found"}
+        session.delete(role)
+        session.commit()
+        return {"message": "Role deleted"}
 @app.get("/tasks")
 def get_all_tasks():
     """Retrieve all tasks"""

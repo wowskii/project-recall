@@ -18,6 +18,7 @@ class Role(SQLModel, table=True):
     name: str  # e.g., "Tank"
     color_hex: str = "#f99e1a"
     icon_name: str = "shield"
+    role_status: str = Field(default="active") # active, inactive
     
     user_id: int = Field(foreign_key="user.id")
     user: User = Relationship(back_populates="roles")

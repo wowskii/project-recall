@@ -10,6 +10,29 @@
 .role-selection-page header {
   text-align: center;
   margin-bottom: 3rem;
+  position: relative;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 3rem;
+}
+
+.edit-header h1 {
+  flex: 1;
+  text-align: center;
 }
 
 .role-selection-page h1 {
@@ -20,7 +43,71 @@
 
 .role-selection-page p {
   font-size: 1.2rem;
+  font-family: 'Probert', sans-serif;
   color: #666;
+}
+
+.btn-edit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-edit:hover {
+  background: #5a6268;
+}
+
+.btn-add-role {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.btn-add-role:hover {
+  background: #218838;
+}
+
+.add-role-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-role-form input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 200px;
+}
+
+.btn-confirm {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.btn-confirm:hover {
+  background: #218838;
 }
 
 .roles-grid {
@@ -56,12 +143,217 @@
 }
 
 .role-name {
-  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.role-button {
+  background: #007bff;
+  color: white;
   border: none;
-  padding: 2rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-size: 1.1rem;
-  font-family: 'Aldrich', sans-serif;
+  font-family: 'Probert', sans-serif;
   cursor: pointer;
   transition: background-color 0.3s ease;
+}
+
+.role-button:hover {
+  background: #0056b3;
+}
+
+/* Edit Mode Styles */
+.edit-section {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 3rem;
+}
+
+.edit-section h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.roles-grid-edit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.role-card-edit {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 280px;
+}
+
+.role-card-edit.inactive {
+  opacity: 0.7;
+  background: #f9f9f9;
+}
+
+.role-card-edit:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.role-card-header {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.role-card-edit .role-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.role-card-edit .role-name {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.btn-retire {
+  background: #ffc107;
+  color: #333;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-retire:hover {
+  background: #e0a800;
+}
+
+.btn-reactivate {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-reactivate:hover {
+  background: #0056b3;
+}
+
+/* Confirmation Dialog */
+.confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 100;
+}
+
+.confirm-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.confirm-box p {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1rem;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-confirm-yes {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirm-yes:hover {
+  background: #c82333;
+}
+
+.btn-confirm-no {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirm-no:hover {
+  background: #5a6268;
+}
+
+/* Separator */
+.separator {
+  width: 100%;
+  height: 2px;
+  background: #ddd;
+  margin: 2rem 0;
+}
+
+.error {
+  color: #dc3545;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
 }
