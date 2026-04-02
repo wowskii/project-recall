@@ -32,10 +32,17 @@ class Project(SQLModel, table=True):
     title: str
     description: Optional[str] = None
     is_active: bool = Field(default=True)
-    
+
     role_id: int = Field(foreign_key="role.id")
     role: Role = Relationship(back_populates="projects")
-    
+
+    parent_project_id: Optional[int] = Field(default=None, foreign_key="project.id")
+    parent_project: Optional["Project"] = Relationship(
+        back_populates="subprojects",
+        sa_relationship_kwargs={"remote_side": "Project.id"},
+    )
+    subprojects: List["Project"] = Relationship(back_populates="parent_project")
+
     # Links to tasks
     tasks: List["Task"] = Relationship(back_populates="project")
 

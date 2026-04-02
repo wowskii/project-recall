@@ -4,4 +4,12 @@ write main.py, use the FastAPI tutorial DONE
 understand how AI fixed the task creation error DONE
 fix task editing error DONE
 
+add courses to db structure
+design role page (with projects)
+design project page (with tasks)
 
+ideate calendar integration 
+ideate stats page positioning
+
+
+other ideas: calendar, AI feedback, stats
