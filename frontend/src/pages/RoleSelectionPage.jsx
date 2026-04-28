@@ -39,8 +39,8 @@ function RoleSelectionPage() {
     loadRoles()
   }, [])
 
-  const selectRole = () => {
-    navigate('/pomodoro')
+  const selectRole = (roleId) => {
+    navigate(`/roles/${roleId}`)
   }
 
   const handleAddRole = async () => {
@@ -120,7 +120,7 @@ function RoleSelectionPage() {
 
         <section className="roles-grid">
           {activeRoles.map((role) => (
-            <div key={role.id} className="role-card" onClick={selectRole}>
+            <div key={role.id} className="role-card" onClick={() => selectRole(role.id)}>
               <div className="role-icon">
                 {role.name === 'Developer' && '💻'}
                 {role.name === 'Musician' && '🎨'}

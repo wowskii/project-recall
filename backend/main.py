@@ -83,6 +83,16 @@ def get_user(user_id: int):
         return {"user": user}
 
 
+@app.get("/roles/{role_id}")
+def get_role(role_id: int):
+    """Get a specific role by ID"""
+    with Session(engine) as session:
+        role = session.get(Role, role_id)
+        if not role:
+            return {"error": "Role not found"}
+        return {"role": role}
+
+
 # ============================================
 # ROLE ENDPOINTS
 # ============================================
@@ -133,6 +143,16 @@ def delete_role(role_id: int):
         session.delete(role)
         session.commit()
         return {"message": "Role deleted"}
+
+
+@app.get("/roles/{role_id}/projects")
+def get_projects_by_role(role_id: int):
+    """Retrieve all projects for a specific role"""
+    with Session(engine) as session:
+        projects = session.exec(select(Project).where(Project.role_id == role_id)).all()
+        return {"projects": projects}
+
+
 @app.get("/tasks")
 def get_all_tasks():
     """Retrieve all tasks"""
