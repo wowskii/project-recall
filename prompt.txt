@@ -1,0 +1,972 @@
+import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import './RoleSelection.css'
+
+function RoleSelectionPage() {
+  const navigate = useNavigate()
+  const [roles, setRoles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [editMode, setEditMode] = useState(false)
+  const [newRoleName, setNewRoleName] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [error, setError] = useState('')
+
+  // Load roles from backend
+  const loadRoles = async () => {
+    try {
+      setLoading(true)
+      const resp = await fetch('http://localhost:8000/roles')
+      if (!resp.ok) throw new Error('Failed to fetch roles')
+      const payload = await resp.json()
+      setRoles(payload.roles || [])
+      setError('')
+    } catch (err) {
+      console.error(err)
+      setError('Could not load roles from API.')
+      // Set placeholder roles if API fails
+      setRoles([
+        { id: 1, name: 'Developer', icon: '💻', role_status: 'active', icon_name: 'code' },
+        { id: 2, name: 'Musician', icon: '🎨', role_status: 'active', icon_name: 'palette' },
+        { id: 3, name: 'Manager', icon: '📊', role_status: 'active', icon_name: 'chart' },
+        { id: 4, name: 'Student', icon: '📚', role_status: 'active', icon_name: 'book' },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadRoles()
+  }, [])
+
+  const selectRole = (roleId) => {
+    navigate(`/roles/${roleId}`)
+  }
+
+  const handleAddRole = async () => {
+    if (!newRoleName.trim()) return
+
+    try {
+      const resp = await fetch('http://localhost:8000/roles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          name: newRoleName,
+          color_hex: '#f99e1a',
+          icon_name: 'shield',
+        }),
+      })
+      if (!resp.ok) throw new Error('Failed to create role')
+      setNewRoleName('')
+      await loadRoles()
+    } catch (err) {
+      console.error(err)
+      setError('Failed to create role.')
+    }
+  }
+
+  const handleDeleteRole = async (roleId) => {
+    try {
+      const resp = await fetch(`http://localhost:8000/roles/${roleId}`, {
+        method: 'DELETE',
+      })
+      if (!resp.ok) throw new Error('Failed to delete role')
+      setConfirmDelete(null)
+      await loadRoles()
+    } catch (err) {
+      console.error(err)
+      setError('Failed to delete role.')
+    }
+  }
+
+  const handleRetireRole = async (roleId) => {
+    try {
+      const resp = await fetch(`http://localhost:8000/roles/${roleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify('inactive'),
+      })
+      if (!resp.ok) throw new Error('Failed to retire role')
+      await loadRoles()
+    } catch (err) {
+      console.error(err)
+      setError('Failed to retire role.')
+    }
+  }
+
+  const activeRoles = roles.filter((r) => r.role_status === 'active')
+  const inactiveRoles = roles.filter((r) => r.role_status !== 'active')
+
+  if (loading && !editMode) {
+    return (
+      <main className="role-selection-page">
+        <p>Loading roles...</p>
+      </main>
+    )
+  }
+
+  if (!editMode) {
+    // Normal selection mode
+    return (
+      <main className="role-selection-page">
+        <header>
+          <h1>Welcome to Project Recall</h1>
+          <p>Select your role to get started</p>
+          {error && <p className="error">{error}</p>}
+          <button className="btn-edit" onClick={() => setEditMode(true)}>
+            Edit
+          </button>
+        </header>
+
+        <section className="roles-grid">
+          {activeRoles.map((role) => (
+            <div key={role.id} className="role-card" onClick={() => selectRole(role.id)}>
+              <div className="role-icon">
+                {role.name === 'Developer' && '💻'}
+                {role.name === 'Musician' && '🎨'}
+                {role.name === 'Manager' && '📊'}
+                {role.name === 'Student' && '📚'}
+                {role.name === 'Recovery' && '➕'}
+              </div>
+              <div className="role-name">{role.name.toLocaleUpperCase()}</div>
+            </div>
+          ))}
+        </section>
+      </main>
+    )
+  }
+
+  // Edit mode
+  return (
+    <main className="role-selection-page">
+      <header className="edit-header">
+        <div className="header-left">
+          <button className="btn-add-role" onClick={() => handleAddRole()}>
+            + Add Role
+          </button>
+          <div className="add-role-form">
+            <input
+              type="text"
+              placeholder="New role name"
+              value={newRoleName}
+              onChange={(e) => setNewRoleName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleAddRole()}
+            />
+          </div>
+        </div>
+        <h1>Edit Roles</h1>
+        <button className="btn-confirm" onClick={() => setEditMode(false)}>
+          ✓ Confirm Changes
+        </button>
+      </header>
+
+      {error && <p className="error">{error}</p>}
+
+      {/* Active Roles */}
+      <section className="edit-section">
+        <h2>Active Roles</h2>
+        <div className="roles-grid-edit">
+          {activeRoles.map((role) => (
+            <div key={role.id} className="role-card-edit">
+              <div className="role-card-header">
+                <button
+                  className="btn-delete"
+                  onClick={() => setConfirmDelete(role.id)}
+                  title="Delete role"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="role-icon">
+                {role.name === 'Developer' && '💻'}
+                {role.name === 'Musician' && '🎨'}
+                {role.name === 'Manager' && '📊'}
+                {role.name === 'Student' && '📚'}
+                {role.name === 'Recovery' && '➕'}
+              </div>
+              <div className="role-name">{role.name.toLocaleUpperCase()}</div>
+              <button
+                className="btn-retire"
+                onClick={() => handleRetireRole(role.id)}
+              >
+                Retire
+              </button>
+
+              {confirmDelete === role.id && (
+                <div className="confirm-overlay">
+                  <div className="confirm-box">
+                    <p>Delete this role permanently?</p>
+                    <div className="confirm-buttons">
+                      <button
+                        className="btn-confirm-yes"
+                        onClick={() => handleDeleteRole(role.id)}
+                      >
+                        Yes, Delete
+                      </button>
+                      <button
+                        className="btn-confirm-no"
+                        onClick={() => setConfirmDelete(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Inactive Roles */}
+      {inactiveRoles.length > 0 && (
+        <>
+          <div className="separator"></div>
+          <section className="edit-section">
+            <h2>Inactive Roles</h2>
+            <div className="roles-grid-edit">
+              {inactiveRoles.map((role) => (
+                <div key={role.id} className="role-card-edit inactive">
+                  <div className="role-card-header">
+                    <button
+                      className="btn-delete"
+                      onClick={() => setConfirmDelete(role.id)}
+                      title="Delete role"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="role-icon">
+                    {role.name === 'Developer' && '💻'}
+                    {role.name === 'Musician' && '🎨'}
+                    {role.name === 'Manager' && '📊'}
+                    {role.name === 'Student' && '📚'}
+                    {role.name === 'Recovery' && '➕'}
+                  </div>
+                  <div className="role-name">{role.name.toLocaleUpperCase()}</div>
+                  <button
+                    className="btn-reactivate"
+                    onClick={() => handleRetireRole(role.id)}
+                  >
+                    Reactivate
+                  </button>
+
+                  {confirmDelete === role.id && (
+                    <div className="confirm-overlay">
+                      <div className="confirm-box">
+                        <p>Delete this role permanently?</p>
+                        <div className="confirm-buttons">
+                          <button
+                            className="btn-confirm-yes"
+                            onClick={() => handleDeleteRole(role.id)}
+                          >
+                            Yes, Delete
+                          </button>
+                          <button
+                            className="btn-confirm-no"
+                            onClick={() => setConfirmDelete(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+    </main>
+  )
+}
+
+export default RoleSelectionPage.role-selection-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.role-selection-page header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 3rem;
+}
+
+.edit-header h1 {
+  flex: 1;
+  text-align: center;
+}
+
+.role-selection-page h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.role-selection-page p {
+  font-size: 1.2rem;
+  font-family: 'Probert', sans-serif;
+  color: #666;
+}
+
+.btn-edit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-edit:hover {
+  background: #5a6268;
+}
+
+.btn-add-role {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.btn-add-role:hover {
+  background: #218838;
+}
+
+.add-role-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-role-form input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 200px;
+}
+
+.btn-confirm {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.btn-confirm:hover {
+  background: #218838;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.role-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 70vh;
+}
+
+.role-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.role-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.role-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.role-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-family: 'Probert', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.role-button:hover {
+  background: #0056b3;
+}
+
+/* Edit Mode Styles */
+.edit-section {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 3rem;
+}
+
+.edit-section h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.roles-grid-edit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.role-card-edit {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 280px;
+}
+
+.role-card-edit.inactive {
+  opacity: 0.7;
+  background: #f9f9f9;
+}
+
+.role-card-edit:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.role-card-header {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.role-card-edit .role-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.role-card-edit .role-name {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.btn-retire {
+  background: #ffc107;
+  color: #333;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-retire:hover {
+  background: #e0a800;
+}
+
+.btn-reactivate {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-reactivate:hover {
+  background: #0056b3;
+}
+
+/* Confirmation Dialog */
+.confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 100;
+}
+
+.confirm-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.confirm-box p {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1rem;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-confirm-yes {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirm-yes:hover {
+  background: #c82333;
+}
+
+.btn-confirm-no {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirm-no:hover {
+  background: #5a6268;
+}
+
+/* Separator */
+.separator {
+  width: 100%;
+  height: 2px;
+  background: #ddd;
+  margin: 2rem 0;
+}
+
+.error {
+  color: #dc3545;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}from fastapi import Body, FastAPI, Form
+from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import Session, create_engine, SQLModel, select
+from models import User, Role, Project, Task, WorkSession
+from database import engine, create_db_and_tables
+
+#Create database tables
+create_db_and_tables()
+
+# Create all tables
+SQLModel.metadata.create_all(engine)
+
+# Initialize FastAPI app
+app = FastAPI(title="Project Recall API")
+
+# ============================================
+# STARTUP: Create default user if needed
+# ============================================
+@app.on_event("startup")
+def startup_event():
+    """Create a default user on startup if none exists"""
+    with Session(engine) as session:
+        existing_users = session.exec(select(User)).all()
+        if not existing_users:
+            default_user = User(username="default_user")
+            session.add(default_user)
+            session.commit()
+
+# Enable CORS (so your frontend can communicate with this backend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # frontend URLs
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Helper function to get the default user
+def get_default_user():
+    """Get the default user (assumes one exists from startup)"""
+    with Session(engine) as session:
+        user = session.exec(select(User)).first()
+        return user.id if user else None
+
+# ============================================
+# HEALTH CHECK - Test if the API is running
+# ============================================
+@app.get("/")
+def read_root():
+    """Welcome endpoint"""
+    return {"message": "Welcome to Project Recall API!"}
+
+
+# ============================================
+# USER ENDPOINTS
+# ============================================
+@app.get("/users")
+def get_all_users():
+    """Retrieve all users"""
+    with Session(engine) as session:
+        users = session.exec(select(User)).all()
+        return {"users": users}
+
+
+@app.post("/users")
+def create_user(username: str):
+    """Create a new user"""
+    with Session(engine) as session:
+        user = User(username=username)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return {"user": user}
+
+
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+    """Get a specific user by ID"""
+    with Session(engine) as session:
+        user = session.get(User, user_id)
+        if not user:
+            return {"error": "User not found"}
+        return {"user": user}
+
+
+@app.get("/roles/{role_id}")
+def get_role(role_id: int):
+    """Get a specific role by ID"""
+    with Session(engine) as session:
+        role = session.get(Role, role_id)
+        if not role:
+            return {"error": "Role not found"}
+        return {"role": role}
+
+
+# ============================================
+# ROLE ENDPOINTS
+# ============================================
+@app.get("/roles")
+def get_all_roles():
+    """Retrieve all roles (active and inactive) for the default user"""
+    with Session(engine) as session:
+        user_id = get_default_user()
+        roles = session.exec(select(Role).where(Role.user_id == user_id)).all()
+        return {"roles": roles}
+
+
+@app.post("/roles")
+def create_role(name: str = Form(...), color_hex: str = Form("#f99e1a"), icon_name: str = Form("shield")):
+    """Create a new role"""
+    with Session(engine) as session:
+        user_id = get_default_user()
+        if not user_id:
+            return {"error": "No user found"}
+        
+        role = Role(name=name, color_hex=color_hex, icon_name=icon_name, user_id=user_id, role_status="active")
+        session.add(role)
+        session.commit()
+        session.refresh(role)
+        return {"role": role}
+
+
+@app.patch("/roles/{role_id}")
+def update_role(role_id: int, role_status: str = Body(...)):
+    """Update role status (active or inactive)"""
+    with Session(engine) as session:
+        role = session.get(Role, role_id)
+        if not role:
+            return {"error": "Role not found"}
+        role.role_status = role_status
+        session.commit()
+        session.refresh(role)
+        return {"role": role}
+
+
+@app.delete("/roles/{role_id}")
+def delete_role(role_id: int):
+    """Delete a role by ID"""
+    with Session(engine) as session:
+        role = session.get(Role, role_id)
+        if not role:
+            return {"error": "Role not found"}
+        session.delete(role)
+        session.commit()
+        return {"message": "Role deleted"}
+
+
+@app.get("/roles/{role_id}/projects")
+def get_projects_by_role(role_id: int):
+    """Retrieve all projects for a specific role"""
+    with Session(engine) as session:
+        projects = session.exec(select(Project).where(Project.role_id == role_id)).all()
+        return {"projects": projects}
+
+
+@app.get("/tasks")
+def get_all_tasks():
+    """Retrieve all tasks"""
+    with Session(engine) as session:
+        tasks = session.exec(select(Task)).all()
+        return {"tasks": tasks}
+
+
+@app.post("/tasks")
+def create_task(title: str = Form(...), project_id: int = Form(...), xp_value: int = Form(100)):
+    """Create a new task"""
+    with Session(engine) as session:
+        task = Task(title=title, project_id=project_id, xp_value=xp_value)
+        session.add(task)
+        session.commit()
+        session.refresh(task)
+        return {"task": task}
+
+
+@app.get("/tasks/{task_id}")
+def get_task(task_id: int):
+    """Get a specific task by ID"""
+    with Session(engine) as session:
+        task = session.get(Task, task_id)
+        if not task:
+            return {"error": "Task not found"}
+        return {"task": task}
+
+
+@app.patch("/tasks/{task_id}")
+def update_task_status(task_id: int, status: str = Body(...)):
+    """Update task status (todo, in_progress, done)"""
+    with Session(engine) as session:
+        task = session.get(Task, task_id)
+        if not task:
+            return {"error": "Task not found"}
+        task.status = status
+        session.commit()
+        session.refresh(task)
+        return {"task": task}
+
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: int):
+    """Delete a task by ID"""
+    with Session(engine) as session:
+        task = session.get(Task, task_id)
+        if not task:
+            return {"error": "Task not found"}
+        session.delete(task)
+        session.commit()
+        return {"message": "Task deleted"}
+
+# PROJECT ENDPOINTS
+
+@app.get("/projects")
+def get_all_projects():
+    """Retrieve all projects"""
+    with Session(engine) as session:
+        projects = session.exec(select(Project)).all()
+        return {"projects": projects}
+
+
+@app.post("/projects")
+def create_project(title: str = Form(...), description: str = Form(None), role_id: int = Form(...)):
+    """Create a new project"""
+    with Session(engine) as session:
+        project = Project(title=title, description=description, role_id=role_id)
+        session.add(project)
+        session.commit()
+        session.refresh(project)
+        return {"project": project}
+    
+@app.get("/projects/{project_id}")
+def get_project(project_id: int):
+    """Get a specific project by ID"""
+    with Session(engine) as session:
+        project = session.get(Project, project_id)
+        if not project:
+            return {"error": "Project not found"}
+        return {"project": project}
+    
+@app.patch("/projects/{project_id}")
+def update_project_status(project_id: int, is_active: bool = Body(...)):
+    """Update project status (active or inactive)"""
+    with Session(engine) as session:
+        project = session.get(Project, project_id)
+        if not project:
+            return {"error": "Project not found"}
+        project.is_active = is_active
+        session.commit()
+        session.refresh(project)
+        return {"project": project}
+
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int):
+    """Delete a project by ID"""
+    with Session(engine) as session:
+        project = session.get(Project, project_id)
+        if not project:
+            return {"error": "Project not found"}
+        session.delete(project)
+        session.commit()
+        return {"message": "Project deleted"}
+
+# ============================================from typing import List, Optional
+from datetime import datetime
+from sqlmodel import Field, Relationship, SQLModel
+
+# 1. USER
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str = Field(index=True, unique=True)
+    total_xp: int = Field(default=0)
+    level: int = Field(default=1)
+    
+    # Links to roles
+    roles: List["Role"] = Relationship(back_populates="user")
+
+# 2. ROLE
+class Role(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str  # e.g., "Tank"
+    color_hex: str = "#f99e1a"
+    icon_name: str = "shield"
+    role_status: str = Field(default="active") # active, inactive
+    
+    user_id: int = Field(foreign_key="user.id")
+    user: User = Relationship(back_populates="roles")
+    
+    # Links to projects
+    projects: List["Project"] = Relationship(back_populates="role")
+
+# 3. MISSION
+class Project(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    description: Optional[str] = None
+    is_active: bool = Field(default=True)
+
+    role_id: int = Field(foreign_key="role.id")
+    role: Role = Relationship(back_populates="projects")
+
+    parent_project_id: Optional[int] = Field(default=None, foreign_key="project.id")
+    parent_project: Optional["Project"] = Relationship(
+        back_populates="subprojects",
+        sa_relationship_kwargs={"remote_side": "Project.id"},
+    )
+    subprojects: List["Project"] = Relationship(back_populates="parent_project")
+
+    # Links to tasks
+    tasks: List["Task"] = Relationship(back_populates="project")
+
+# 4. THE MATCH
+class Task(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    status: str = Field(default="todo") # todo, in_progress, done
+    xp_value: int = Field(default=100)
+    
+    project_id: int = Field(foreign_key="project.id")
+    project: Project = Relationship(back_populates="tasks")
+    
+    # Links to sessions (for stats!)
+    sessions: List["WorkSession"] = Relationship(back_populates="task")
+
+# 5. THE TELEMETRY (WorkSession / Pomodoro logs)
+class WorkSession(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    start_time: datetime = Field(default_factory=datetime.utcnow)
+    end_time: Optional[datetime] = None
+    duration_seconds: int = Field(default=0)
+    
+    task_id: int = Field(foreign_key="task.id")
+    task: Task = Relationship(back_populates="sessions")

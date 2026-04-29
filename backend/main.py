@@ -205,3 +205,57 @@ def delete_task(task_id: int):
         session.delete(task)
         session.commit()
         return {"message": "Task deleted"}
+
+# PROJECT ENDPOINTS
+
+@app.get("/projects")
+def get_all_projects():
+    """Retrieve all projects"""
+    with Session(engine) as session:
+        projects = session.exec(select(Project)).all()
+        return {"projects": projects}
+
+
+@app.post("/projects")
+def create_project(title: str = Form(...), description: str = Form(None), role_id: int = Form(...)):
+    """Create a new project"""
+    with Session(engine) as session:
+        project = Project(title=title, description=description, role_id=role_id)
+        session.add(project)
+        session.commit()
+        session.refresh(project)
+        return {"project": project}
+    
+@app.get("/projects/{project_id}")
+def get_project(project_id: int):
+    """Get a specific project by ID"""
+    with Session(engine) as session:
+        project = session.get(Project, project_id)
+        if not project:
+            return {"error": "Project not found"}
+        return {"project": project}
+    
+@app.patch("/projects/{project_id}")
+def update_project_status(project_id: int, is_active: bool = Body(...)):
+    """Update project status (active or inactive)"""
+    with Session(engine) as session:
+        project = session.get(Project, project_id)
+        if not project:
+            return {"error": "Project not found"}
+        project.is_active = is_active
+        session.commit()
+        session.refresh(project)
+        return {"project": project}
+
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int):
+    """Delete a project by ID"""
+    with Session(engine) as session:
+        project = session.get(Project, project_id)
+        if not project:
+            return {"error": "Project not found"}
+        session.delete(project)
+        session.commit()
+        return {"message": "Project deleted"}
+
+# ============================================
