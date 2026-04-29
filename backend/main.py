@@ -236,13 +236,13 @@ def get_project(project_id: int):
         return {"project": project}
     
 @app.patch("/projects/{project_id}")
-def update_project_status(project_id: int, is_active: bool = Body(...)):
+def update_project_status(project_id: int, project_status: str = Body(...)):
     """Update project status (active or inactive)"""
     with Session(engine) as session:
         project = session.get(Project, project_id)
         if not project:
             return {"error": "Project not found"}
-        project.is_active = is_active
+        project.project_status = project_status
         session.commit()
         session.refresh(project)
         return {"project": project}

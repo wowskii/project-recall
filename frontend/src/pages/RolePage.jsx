@@ -65,9 +65,9 @@ function RolePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          name: newProjectName,
-          color_hex: '#f99e1a',
-          icon_name: 'shield',
+          title: newProjectName,
+          description: '',
+          role_id: roleId,
         }),
       })
       if (!resp.ok) throw new Error('Failed to create project')
@@ -95,10 +95,14 @@ function RolePage() {
 
   const handleRetireProject = async (projectId) => {
     try {
+      const p = projects.find((proj) => proj.id === projectId)
       const resp = await fetch(`http://localhost:8000/projects/${projectId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify('inactive'),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          project_id: projectId,
+          project_status: (p.project_status === 'active') ? 'inactive' : 'active',
+        }),
       })
       if (!resp.ok) throw new Error('Failed to retire project ')
       await loadProjects()
@@ -108,8 +112,9 @@ function RolePage() {
     }
   }
 
-  const activeProjects = projects.filter((p) => p.status === 'active')
-  const inactiveProjects = projects.filter((p) => p.status !== 'active')
+  const activeProjects = projects.filter((p) => p.project_status === 'active');
+  const inactiveProjects = projects.filter((p) => p.project_status !== 'active');
+
 
   if (loading && !editMode) {
     return (
@@ -151,10 +156,10 @@ function RolePage() {
     <main className="role-selection-page">
       <header className="edit-header">
         <div className="header-left">
-          <button className="btn-add-project" onClick={() => handleAddProject()}>
+          <button className="btn-add-item" onClick={() => handleAddProject()}>
             + Add Project
           </button>
-          <div className="add-project-form">
+          <div className="add-item-form">
             <input
               type="text"
               placeholder="New project name"
@@ -165,7 +170,7 @@ function RolePage() {
           </div>
         </div>
         <h1>Edit Projects</h1>
-        <button className="btn-confirm" onClick={() => setEditMode(false)}>
+        <button className="btn-confirm" onClick={(e) => setEditMode(false)}>
           ✓ Confirm Changes
         </button>
       </header>

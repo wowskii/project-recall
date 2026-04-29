@@ -31,7 +31,7 @@ class Project(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str
     description: Optional[str] = None
-    is_active: bool = Field(default=True)
+    project_status: str = Field(default="active") # active, inactive
 
     role_id: int = Field(foreign_key="role.id")
     role: Role = Relationship(back_populates="projects")

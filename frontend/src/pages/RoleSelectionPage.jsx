@@ -81,10 +81,14 @@ function RoleSelectionPage() {
 
   const handleRetireRole = async (roleId) => {
     try {
+      const r = roles.find((role) => role.id === roleId)  
       const resp = await fetch(`http://localhost:8000/roles/${roleId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify('inactive'),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          role_id: roleId,
+          role_status: (r.role_status === 'active') ? 'inactive' : 'active',
+        }),
       })
       if (!resp.ok) throw new Error('Failed to retire role')
       await loadRoles()
@@ -141,10 +145,10 @@ function RoleSelectionPage() {
     <main className="role-selection-page">
       <header className="edit-header">
         <div className="header-left">
-          <button className="btn-add-role" onClick={() => handleAddRole()}>
+          <button className="btn-add-item" onClick={() => handleAddRole()}>
             + Add Role
           </button>
-          <div className="add-role-form">
+          <div className="add-item-form">
             <input
               type="text"
               placeholder="New role name"
